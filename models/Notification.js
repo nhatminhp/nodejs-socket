@@ -3,8 +3,8 @@ const Schema = mongoose.Schema;
 const db = require('../utils/db');
 const autoIncrement = require('mongoose-auto-increment');
 
-var userSessionSchema = new Schema({
-    usID: {
+var notificationSchema = new Schema({
+    nID: {
         type: Number, 
         required: true, 
         unique: true
@@ -12,20 +12,19 @@ var userSessionSchema = new Schema({
     userID: {
         type: String, 
     },
-    sessionID: {
+    content: {
         type: String, 
     },
-    isActive: {
+    url: {
         type: String, 
-        default: "1"
     },
 	lastModifiedAt : { type: Date, default: Date.now },
 })
 
-const UserSession = mongoose.model('UserSession', userSessionSchema);
+const Notification = mongoose.model('Notification', notificationSchema);
 autoIncrement.initialize(mongoose.connection);
-userSessionSchema.plugin(autoIncrement.plugin, { model: 'UserSession', field: 'usID' });
+notificationSchema.plugin(autoIncrement.plugin, {model: 'Notification', field: 'nID'});
 
 module.exports = {
-    UserSession
+    Notification
 };

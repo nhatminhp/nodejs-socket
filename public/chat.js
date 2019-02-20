@@ -20,6 +20,10 @@ window.onload = function() {
         }
     });
 
+    socket.on('notify', function(data) {
+        console.log(data);
+    });
+
     sendButton.onclick = function() {
         var text = field.value;     
         var user_id = user_id_field.value;

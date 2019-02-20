@@ -6,7 +6,7 @@ window.onload = function() {
     var user_id_field = document.getElementById("user-id-field");
     var sendButton = document.getElementById("send");
     var content = document.getElementById("content");
-    socket.emit('send', { message: "an user have just joined", user_id: "default"});
+    // socket.emit('send', { message: "an user have just joined", user_id: "default"});
     socket.on('message', function (data) {
         if(data.message) {
             messages.push(data.message);

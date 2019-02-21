@@ -18,6 +18,10 @@ var notificationSchema = new Schema({
     url: {
         type: String, 
     },
+    seen: {
+        type: String,
+        default: "0"
+    },
 	lastModifiedAt : { type: Date, default: Date.now },
 })
 

@@ -1,6 +1,6 @@
 var express = require('express');
 var app = express();
-var port = 3701;
+var port = 3000;
 const db = require('./utils/db');
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -24,10 +24,29 @@ app.get("/", function(req, res){
 app.use(express.static(__dirname + '/public'));
 var io = require('socket.io').listen(app.listen(port));
 
+// var http = require('http').Server(app);
+
+// var io = require('socket.io')(http, {'pingInterval': 2000, 'pingTimeout': 5000}).listen(app.listen(port));
+
 // var sessionID;
+
+function sendHeartbeat(){
+    console.log("ping");
+    setTimeout(sendHeartbeat, 8000);
+    io.sockets.emit('ping', { beat : 1 });
+}
 
 io.sockets.on('connection', function (socket) {
     var sessionID = socket.id;
+    // setTimeout(function() {
+    //     socket.send('Sent a message 3 seconds after connection!');
+    //  }, 3000);
+    socket.on('disconnect', function () {
+        console.log(sessionID + ' disconnected');
+     });
+    socket.on('pong', function(data){
+        console.log("Pong received from client");
+    });
     socket.emit('message', { message: "your session id is: " + sessionID });
     socket.on('send', function (data) {
         console.log(data.user_id);
@@ -65,6 +84,8 @@ io.sockets.on('connection', function (socket) {
         io.sockets.emit('message', data);
     });
 });
+
+setTimeout(sendHeartbeat, 8000);
 
 //handle notification
 app.post("/notification", function(req, res) {

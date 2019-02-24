@@ -92,7 +92,8 @@ app.post("/notification", function(req, res) {
     var user_id = req.body.user_id;
     var content = req.body.content;
     var url = req.body.url;
-    if (!url || !user_id || !url) {
+    var time = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    if (!url || !user_id || !content) {
         res.statusCode = 400;
         return res.json({});
     } 
@@ -103,15 +104,16 @@ app.post("/notification", function(req, res) {
         content: content,
         url: url
     });
+
     notification.save(function (err) {
         if (err) {
             console.log(err);
-            res.statusCode = 500
+            res.statusCode = 500;
             return res.json({});
         }
-        console.log('Notification Created successfully')
-        
+        console.log(notification)    
     })
+
     var query = UserSession.findOne({userID: user_id}, function(err, document) {
         if (err) {
             console.log(err);
@@ -119,7 +121,8 @@ app.post("/notification", function(req, res) {
         }
         io.to(document.sessionID).emit("notify", {
             "content": content,
-            "url": url
+            "url": url,
+            "updated_at": time
         });
     });
     res.statusCode = 200

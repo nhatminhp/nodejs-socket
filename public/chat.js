@@ -27,7 +27,7 @@ window.onload = function() {
 
     socket.on('ping', function(data){
         console.log("pong");
-        socket.emit("pong", {beat: 1});
+        socket.emit('pong', { beat: 1 });
     });
 
     sendButton.onclick = function() {

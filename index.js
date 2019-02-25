@@ -30,6 +30,7 @@ var io = require('socket.io').listen(app.listen(port));
 
 // var sessionID;
 
+// send ping to client every n seconds to prevent connection timeout
 function sendHeartbeat(){
     console.log("ping");
     setTimeout(sendHeartbeat, 8000);
@@ -44,9 +45,11 @@ io.sockets.on('connection', function (socket) {
     socket.on('disconnect', function () {
         console.log(sessionID + ' disconnected');
      });
+     // ?????? still having problem with listening to pong event
     socket.on('pong', function(data){
-        console.log("Pong received from client");
+        console.log(data);
     });
+    setTimeout(sendHeartbeat, 8000);
     socket.emit('message', { message: "your session id is: " + sessionID });
     socket.on('send', function (data) {
         console.log(data.user_id);
@@ -85,7 +88,7 @@ io.sockets.on('connection', function (socket) {
     });
 });
 
-setTimeout(sendHeartbeat, 8000);
+
 
 //handle notification
 app.post("/notification", function(req, res) {
@@ -111,7 +114,7 @@ app.post("/notification", function(req, res) {
             res.statusCode = 500;
             return res.json({});
         }
-        console.log(notification)    
+        console.log(notification, time)    
     })
 
     var query = UserSession.findOne({userID: user_id}, function(err, document) {
@@ -122,7 +125,7 @@ app.post("/notification", function(req, res) {
         io.to(document.sessionID).emit("notify", {
             "content": content,
             "url": url,
-            "updated_at": time
+            "time": time
         });
     });
     res.statusCode = 200

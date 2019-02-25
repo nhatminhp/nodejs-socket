@@ -22,6 +22,9 @@ var notificationSchema = new Schema({
         type: String,
         default: "0"
     },
+    createdAt: {
+        type: Date,
+    },
 	lastModifiedAt : { type: Date, default: Date.now },
 })
 

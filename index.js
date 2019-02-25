@@ -33,9 +33,11 @@ var io = require('socket.io').listen(app.listen(port));
 // send ping to client every n seconds to prevent connection timeout
 function sendHeartbeat(){
     console.log("ping");
-    setTimeout(sendHeartbeat, 8000);
     io.sockets.emit('ping', { beat : 1 });
+    setTimeout(sendHeartbeat, 10000);
 }
+
+// setTimeout(sendHeartbeat, 10000);
 
 io.sockets.on('connection', function (socket) {
     var sessionID = socket.id;
@@ -49,15 +51,39 @@ io.sockets.on('connection', function (socket) {
     socket.on('pong', function(data){
         console.log(data);
     });
-    setTimeout(sendHeartbeat, 8000);
+
+    sendHeartbeat();
+    
     socket.emit('message', { message: "your session id is: " + sessionID });
+
+    socket.on('seen', function (data) {
+        var notification_id = data.id;
+        var user_id = data.user_id;
+        var find = Notification.findOne({
+            _id : notification_id,
+            userID: user_id
+        }).then((notification) => {
+            if (notification != null) {
+                notification.seen = "1"
+                notification.save(function(err) {   
+                    if (err)
+                        console.log(err)
+                    else
+                        console.log(notification)
+                });
+            } else {
+                console.log("not found")
+            }
+        });
+    });
+
     socket.on('send', function (data) {
         console.log(data.user_id);
         var r = Math.random();
         var find = UserSession.findOne({
             userID: data.user_id
         }).then((user) => {
-            console.log(user);
+            // console.log(user);
             if (user == null) {
                 var userSession = new UserSession({
                     usID: r,
@@ -72,13 +98,16 @@ io.sockets.on('connection', function (socket) {
                     console.log('User Session Created successfully')
                 })
             } else {
-                user.sessionID = sessionID;
-                user.save(function(err) {   
-                    if (err)
-                      console.log(err)
-                    else
-                      console.log('updated user session successfully')
-                  });
+                console.log(user.sessionID != sessionID);
+                if (user.sessionID != sessionID) {
+                    user.sessionID = sessionID;
+                    user.save(function(err) {   
+                        if (err)
+                            console.log(err)
+                        else
+                            console.log('updated user session successfully')
+                    });
+                }
             }
         }, (e) => {
             console.log(e);
@@ -105,7 +134,8 @@ app.post("/notification", function(req, res) {
         nID: r,
         userID: user_id,
         content: content,
-        url: url
+        url: url,
+        createdAt: time
     });
 
     notification.save(function (err) {
@@ -114,7 +144,7 @@ app.post("/notification", function(req, res) {
             res.statusCode = 500;
             return res.json({});
         }
-        console.log(notification, time)    
+        console.log(notification.id)    
     })
 
     var query = UserSession.findOne({userID: user_id}, function(err, document) {
@@ -123,6 +153,7 @@ app.post("/notification", function(req, res) {
             // return res.status(404).send();
         }
         io.to(document.sessionID).emit("notify", {
+            "id": notification.id,
             "content": content,
             "url": url,
             "time": time

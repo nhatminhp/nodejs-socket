@@ -27,13 +27,14 @@ window.onload = function() {
 
     socket.on('ping', function(data){
         console.log("pong");
-        socket.emit('pong', { beat: 1 });
+        var user_id = user_id_field.value;
+        socket.emit('send', { message: "pong", user_id: user_id});  
     });
 
     sendButton.onclick = function() {
         var text = field.value;     
         var user_id = user_id_field.value;
-        socket.emit('send', { message: text, user_id: user_id});        
+        socket.emit('seen', { id : text, user_id: user_id });        
     };
 
 }

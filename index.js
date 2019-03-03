@@ -32,7 +32,7 @@ var io = require('socket.io').listen(app.listen(port));
 
 // send ping to client every n seconds to prevent connection timeout
 function sendHeartbeat(){
-    console.log("ping");
+    // console.log("ping");
     io.sockets.emit('ping', { beat : 1 });
     setTimeout(sendHeartbeat, 10000);
 }

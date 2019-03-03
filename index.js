@@ -128,7 +128,7 @@ app.post("/notification", function(req, res) {
     if (!url || !user_id || !content) {
         res.statusCode = 400;
         return res.json({});
-    } 
+    }
     var r = Math.random();
     var notification = new Notification({
         nID: r,

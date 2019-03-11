@@ -120,7 +120,7 @@ io.sockets.on('connection', function (socket) {
 
 
 //handle notification
-app.post("/notification", function(req, res) {
+app.post("/notifications", function(req, res) {
     var user_id = req.body.user_id;
     var content = req.body.content;
     var url = req.body.url;
@@ -141,6 +141,7 @@ app.post("/notification", function(req, res) {
     notification.save(function (err) {
         if (err) {
             console.log(err);
+            //
             res.statusCode = 500;
             return res.json({});
         }
@@ -161,4 +162,91 @@ app.post("/notification", function(req, res) {
     });
     res.statusCode = 200
     return res.json({});
+});
+
+app.get("/notifications", function(req, res) {
+    var page = req.query.page;
+    var user_id = req.query.user_id;
+    console.log(page, user_id);
+    if (!page || !user_id) {
+        res.statusCode = 400;
+        return res.json();
+    }
+    let query = Notification.find({
+        userID: user_id,
+        //
+    }).sort('-lastModifiedAt').exec(function(err, notifications) {
+        if (err) {
+            console.log(err);
+            //
+            res.statusCode = 500;
+            return res.json();
+        }
+        // console.log(notifications)
+        if (!notifications || notifications.length == 0) {
+            //
+            console.log("aaa");
+            res.statusCode = 404;
+            return res.json();
+        }
+        let result = [];
+        for (i = 0; i < notifications.length; i++) { 
+            var item = notifications[i];
+            let noti = {};
+            noti["notification_id"] = item.id;
+            noti["seen"] = item.seen;
+            noti["content"] = item.content;
+            noti["url"] = item.url;
+            result.push(noti);
+        }
+        result = result.slice(10*page, 10)
+        if (result.length == 0) {
+            res.statusCode = 404;
+            return res.json();
+        }
+
+        return res.json(result);
+    });
+});
+
+app.put("/notifications", function(req, res) {
+    var notification_id = req.body.notification_id;
+    var user_id = req.body.user_id;
+    console.log(notification_id, user_id);
+    if (!notification_id || !user_id) {
+        res.statusCode = 400;
+        return res.json();
+    }
+    let query = Notification.find({
+        userID: user_id,
+        _id: notification_id
+        //
+    }).exec(function(err, notifications) {
+        if (err) {
+            console.log(err);
+            //
+            res.statusCode = 500;
+            return res.json();
+        }
+        // console.log(notifications)
+        notification = notifications[0];
+        if (!notification) {
+            //
+            console.log("aaa");
+            res.statusCode = 404;
+            return res.json();
+        }
+        notification.seen = "1";
+        notification.save(function(err) {   
+            if (err){
+                console.log(err);
+                res.statusCode = 500;
+                return res.json();
+            }
+            else
+                // console.log(notification);
+                return res.json();
+        });
+
+    });
 });
